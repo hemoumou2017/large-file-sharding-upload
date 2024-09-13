@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/axios@0.24.0/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <input type="file" id="fileInput" />
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const chunkSize = 1024 * 1024;
+      fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        const chunks = [];
+        let startPos = 0;
+        while (startPos < file.size) {
+          chunks.push(file.slice(startPos, startPos + chunkSize));
+          startPos += chunkSize;
+        }
+        const randowString = Math.random().toString().slice(2, 10);
+        const tasks = [];
+        chunks.map(async (chunk, index) => {
+          const formData = new FormData();
+
+          formData.set('name', randowString + file.name + '-' + index);
+          formData.append('file', chunk);
+          tasks.push(axios.post('http://localhost:3000/upload', formData));
+        });
+        await Promise.all(tasks);
+        axios.get(
+          'http://localhost:3000/merge?name=' + randowString + file.name,
+        );
+      };
+    </script>
+  </body>
+</html>
